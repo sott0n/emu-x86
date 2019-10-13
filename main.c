@@ -54,7 +54,7 @@ uint32_t get_code32(Emulator* emu, int index) {
     int i;
     uint32_t ret = 0;
 
-    for (i = 0; i < 4; i+;) {
+    for (i = 0; i < 4; i++) {
         ret |= get_code8(emu, index + i) << (i * 8);
     }
 
