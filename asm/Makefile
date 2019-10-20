@@ -1,4 +1,4 @@
-TARGET = helloworld.bin
+TARGET = modrm-test.bin
 TOOLS = ../tools
 
 CC = gcc

@@ -1,4 +1,4 @@
-OBJS = main.o
+OBJS = main.o emulator_function.o instruction.o modrm.o
 CFALGS += -Wall
 
 all:
