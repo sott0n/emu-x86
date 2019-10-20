@@ -1,4 +1,4 @@
-TARGET = modrm-test.bin
+TARGET = call-test.bin
 TOOLS = ../tools
 
 CC = gcc

@@ -43,6 +43,18 @@ static void mov_rm32_r32(Emulator* emu) {
     set_rm32(emu, &modrm, r32);
 }
 
+static void push_r32(Emulator* emu) {
+    uint8_t reg = get_code8(emu, 0) - 0x50;
+    push32(emu, get_register32(emu, reg));
+    emu->eip += 1;
+}
+
+static void pop_r32(Emulator* emu) {
+    uint8_t reg = get_code8(emu, 0) - 0x58;
+    set_register32(emu, reg, pop32(emu));
+    emu->eip += 1;
+}
+
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm) {
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
@@ -92,6 +104,16 @@ static void code_ff(Emulator* emu) {
         printf("not implemented: FF /%d\n", modrm.opecode);
         exit(1);
     }
+}
+
+static void call_reg32(Emulator* emu) {
+    int32_t diff = get_sign_code32(emu, 1);
+    push32(emu, emu->eip + 5);
+    emu->eip += (diff + 5);
+}
+
+static void ret(Emulator* emu) {
+    emu->eip = pop32(emu);
 }
 
 static void short_jump(Emulator* emu) {
