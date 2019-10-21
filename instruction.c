@@ -55,6 +55,25 @@ static void pop_r32(Emulator* emu) {
     emu->eip += 1;
 }
 
+static void push_imm32(Emulator* emu) {
+    uint32_t value = get_code32(emu, 1);
+    push32(emu, value);
+    emu->eip += 5;
+}
+
+static void push_imm8(Emulator* emu) {
+    uint8_t value = get_code8(emu, 1);
+    push32(emu, value);
+    emu->eip += 2;
+}
+
+static void add_rm32_imm8(Emulator* emu, ModRM* modrm) {
+    uint32_t rm32 = get_rm32(emu, modrm);
+    uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
+    emu->eip += 1;
+    set_rm32(emu, modrm, rm32 + imm8);
+}
+
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm) {
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
@@ -68,6 +87,9 @@ static void code_83(Emulator* emu) {
     parse_modrm(emu, &modrm);
 
     switch (modrm.opecode) {
+    case 0:
+        add_rm32_imm8(emu, &modrm);
+        break;
     case 5:
         sub_rm32_imm8(emu, &modrm);
         break;
@@ -106,7 +128,7 @@ static void code_ff(Emulator* emu) {
     }
 }
 
-static void call_reg32(Emulator* emu) {
+static void call_rel32(Emulator* emu) {
     int32_t diff = get_sign_code32(emu, 1);
     push32(emu, emu->eip + 5);
     emu->eip += (diff + 5);
@@ -138,13 +160,31 @@ void init_instructions(void) {
     int i;
     memset(instructions, 0, sizeof(instructions));
     instructions[0x01] = add_rm32_r32;
+
+    for (i = 0; i < 8; i++) {
+        instructions[0x50 + i] = push_r32;
+    }
+
+    for (i = 0; i < 8; i++) {
+        instructions[0x58 + i] = pop_r32;
+    }
+
+    instructions[0x68] = push_imm32;
+    instructions[0x6A] = push_imm8;
+
     instructions[0x83] = code_83;
     instructions[0x89] = mov_rm32_r32;
     instructions[0x8B] = mov_r32_rm32;
+
     for (i = 0; i < 8; i++) {
         instructions[0xB8 + i] = mov_r32_imm32;
     }
+
+    instructions[0xC3] = ret;
     instructions[0xC7] = mov_rm32_imm32;
+    instructions[0xC9] = leave;
+
+    instructions[0xE8] = call_rel32;
     instructions[0xE9] = near_jump;
     instructions[0xEB] = short_jump;
     instructions[0xFF] = code_ff;

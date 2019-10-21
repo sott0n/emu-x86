@@ -1,12 +1,13 @@
 TARGET = test.bin
+OBJS = crt0.o test.o
 TOOLS = ../tools
 
 CC = gcc
 LD = ld
 AS = nasm
 CFLAGS += -nostdlib -fno-asynchronous-unwind-tables \
-	-I$(TOOLS)/i386-elf-gcc/include -g -fno-stack-protector
-LDFLAGS += --entry=func --oformat=binary
+	-I$(TOOLS)/i386-elf-gcc/include -g -fno-pie -fno-stack-protector -m32
+LDFLAGS += --entry=start --oformat=binary -Ttext 0x7c00 -m elf_i386
 
 .PHONY: all
 all :
@@ -15,8 +16,11 @@ all :
 %.o : %.c Makefile
 	$(CC) $(CFLAGS) -c $<
 
-%.bin : %.o Makefile
-	$(LD) $(LDFLAGS) -o $@ $<
+%.o : %.asm Makefile
+	$(AS) -f elf $<
 
-%.bin : %.asm Makefile
-	$(AS) -f bin -o $@ $<
+$(TARGET) : $(OBJS) Makefile
+	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+
+clean :
+	rm *.o *.bin
