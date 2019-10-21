@@ -116,6 +116,14 @@ static void ret(Emulator* emu) {
     emu->eip = pop32(emu);
 }
 
+static void leave(Emulator* emu) {
+    uint32_t ebp = get_register32(emu, EBP);
+    set_register32(emu, ESP, ebp);
+    set_register32(emu, EBP, pop32(emu));
+
+    emu->eip += 1;
+}
+
 static void short_jump(Emulator* emu) {
     int8_t diff = get_sign_code8(emu, 1);
     emu->eip += (diff + 2);
