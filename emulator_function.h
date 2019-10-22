@@ -5,6 +5,12 @@
 
 #include "emulator.h"
 
+/* eflags */
+#define CARRY_FLAG (1)
+#define ZERO_FLAG (1 << 6)
+#define SIGN_FLAG (1 << 7)
+#define OVERFLOW_FLAG (1 << 11)
+
 uint32_t get_code8(Emulator* emu, int index);
 int32_t get_sign_code8(Emulator* emu, int index);
 uint32_t get_code32(Emulator* emu, int index);

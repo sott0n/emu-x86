@@ -74,11 +74,21 @@ static void add_rm32_imm8(Emulator* emu, ModRM* modrm) {
     set_rm32(emu, modrm, rm32 + imm8);
 }
 
+static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm) {
+    uint32_t rm32 = get_rm32(emu, modrm);
+    uint32_t imm8 = (uint32_t)get_sign_code8(emu, 0);
+    emu->eip += 1;
+    uint64_t result = (uint64_t)rm32 - (uint64_t)imm8;
+    update_eflags_sub(emu, rm32, imm8, result);
+}
+
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm) {
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
     emu->eip += 1;
-    set_rm32(emu, modrm, rm32 - imm8);
+    uint64_t result = (uint64_t)rm32 - (uint64_t)imm8;
+    set_rm32(emu, modrm, result);
+    update_eflags_sub(emu, rm32, imm8, result);
 }
 
 static void code_83(Emulator* emu) {
@@ -93,6 +103,8 @@ static void code_83(Emulator* emu) {
     case 5:
         sub_rm32_imm8(emu, &modrm);
         break;
+    case 7:
+        cmp_rm32_imm8(emu, &modrm);
     default:
         printf("not implemented: 83 /%d\n", modrm.opecode);
         exit(1);
@@ -154,6 +166,45 @@ static void short_jump(Emulator* emu) {
 static void near_jump(Emulator* emu) {
     int32_t diff = get_sign_code32(emu, 1);
     emu->eip += (diff + 5);
+}
+
+static void cmp_r32_rm32(Emulator* emu) {
+    emu->eip += 1;
+    ModRM modrm;
+    parse_modrm(emu, &modrm);
+    uint32_t r32 = get_r32(emu, &modrm);
+    uint32_t rm32 = get_rm32(emu, &modrm);
+    uint64_t result = (uint64_t)r32 - (uint64_t)rm32;
+    update_eflags_sub(emu, r32, rm32, result);
+}
+
+#define DEFINE_JX(flag, is_flag) \
+static void j ## flag(Emulator* emu) \
+{ \
+    int diff = is_flag(emu) ? get_sign_code8(emu, 1) : 0; \
+    emu->eip += (diff + 2); \
+} \
+static void jn ## flag(Emulator* emu) \
+{ \
+    int diff = is_flag(emu) ? 0 : get_sign_code8(emu, 1); \
+    emu->eip += (diff + 2); \
+} \
+
+DEFINE_JX(c, is_carry)
+DEFINE_JX(z, is_zero)
+DEFINE_JX(s, is_sign)
+DEFINE_JX(o, is_overflow)
+
+#undef DEFINE_JX
+
+static void jl(Emulator* emu) {
+    int diff = (is_sign(emu) != is_overflow(emu)) ? get_sign_code8(emu, 1) : 0;
+    emu->eip += (diff + 2);
+}
+
+static void jle(Emulator* emu) {
+    int diff = (is_zero(emu) || (is_sign(emu) != is_overflow(emu))) ? get_sign_code8(emu, 1) : 0;
+    emu->eip += (diff + 2);
 }
 
 void init_instructions(void) {

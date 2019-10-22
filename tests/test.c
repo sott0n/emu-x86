@@ -1,7 +1,11 @@
-int add(int a, int b) {
-    return a + b;
+int abs(int i) {
+    if (i >= 0) {
+        return i;
+    } else {
+        return -i;
+    }
 }
 
 int main(void) {
-    return add(2, 5);
+    return abs(-3);
 }
