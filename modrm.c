@@ -83,8 +83,16 @@ uint32_t get_rm32(Emulator* emu, ModRM* modrm) {
     }
 }
 
+void set_r8(Emulator* emu, ModRM* modrm, uint8_t value) {
+    set_register8(emu, modrm->reg_index, value);
+}
+
 void set_r32(Emulator* emu, ModRM* modrm, uint32_t value) {
     set_register32(emu, modrm->reg_index, value);
+}
+
+uint8_t get_r8(Emulator* emu, ModRM* modrm) {
+    return get_register8(emu, modrm->reg_index);
 }
 
 uint32_t get_r32(Emulator* emu, ModRM* modrm) {

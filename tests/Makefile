@@ -1,5 +1,4 @@
-TARGET = test.bin
-OBJS = crt0.o test.o
+TARGET = in.bin out.bin select.bin
 TOOLS = ../tools
 
 CC = gcc
@@ -16,11 +15,11 @@ all :
 %.o : %.c Makefile
 	$(CC) $(CFLAGS) -c $<
 
-%.o : %.asm Makefile
-	$(AS) -f elf $<
+%.bin : %.o Makefile
+	$(LD) $(LDFLAGS) -o $@ $<
 
-$(TARGET) : $(OBJS) Makefile
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+%.bin : %.asm Makefile
+	$(AS) -f bin -o $@ $<
 
 clean :
 	rm *.o *.bin
