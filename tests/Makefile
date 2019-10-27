@@ -1,4 +1,4 @@
-TARGET = in.bin out.bin select.bin
+TARGET = in.bin out.bin select.bin subroutin32.bin
 TOOLS = ../tools
 
 CC = gcc
