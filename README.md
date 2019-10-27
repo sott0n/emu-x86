@@ -33,57 +33,104 @@ $ ./emux86 test.bin
 
 ### input source code as c lang.
 ```c
-int abs(int i) {
-    if (i >= 0) {
-        return i;
-    } else {
-        return -i;
-    }
-}
+BITS 32
+    org 0x7c00
+start:
+    mov edx, 0x03f8
+mainloop:
+    mov al, '>'
+    out dx, al
+input:
+    in al, dx
+    cmp al, 'h'
+    je puthello
+    cmp al, 'w'
+    je putworld
+    cmp al, 'q'
+    je fin
+    jmp input
+puthello:
+    mov esi, msghello
+    call puts
+    jmp mainloop
+putworld:
+    mov esi, msgworld
+    call puts
+    jmp mainloop
+fin:
+    jmp 0
 
-int main(void) {
-    return abs(-3);
-}
+puts:
+    mov al, [esi]
+    inc esi
+    cmp al, 0
+    je putsend
+    out dx, al
+    jmp puts
+putsend:
+    ret
+
+msghello:
+    db "hello", 0x0d, 0x0a, 0
+msgworld:
+    db "world", 0x0d, 0x0a, 0
 ```
 
 ### assembler of c code.
 ```asm
-$ ndisasm -b 32 test.bin
-00000000  E81A000000        call 0x1f
-00000005  E9F683FFFF        jmp 0xffff8400
-0000000A  55                push ebp
-0000000B  89E5              mov ebp,esp
-0000000D  837D0800          cmp dword [ebp+0x8],byte +0x0
-00000011  7805              js 0x18
-00000013  8B4508            mov eax,[ebp+0x8]
-00000016  EB05              jmp short 0x1d
-00000018  8B4508            mov eax,[ebp+0x8]
-0000001B  F7D8              neg eax
-0000001D  5D                pop ebp
-0000001E  C3                ret
-0000001F  55                push ebp
-00000020  89E5              mov ebp,esp
-00000022  B803000000        mov eax,0x3
-00000027  5D                pop ebp
-00000028  C3                ret
+$ ndisasm -b 32 tests/select.bin
+00000000  BAF8030000        mov edx,0x3f8
+00000005  B03E              mov al,0x3e
+00000007  EE                out dx,al
+00000008  EC                in al,dx
+00000009  3C68              cmp al,0x68
+0000000B  740A              jz 0x17
+0000000D  3C77              cmp al,0x77
+0000000F  7412              jz 0x23
+00000011  3C71              cmp al,0x71
+00000013  741A              jz 0x2f
+00000015  EBF1              jmp short 0x8
+00000017  BE3F7C0000        mov esi,0x7c3f
+0000001C  E813000000        call 0x34
+00000021  EBE2              jmp short 0x5
+00000023  BE477C0000        mov esi,0x7c47
+00000028  E807000000        call 0x34
+0000002D  EBD6              jmp short 0x5
+0000002F  E9CC83FFFF        jmp 0xffff8400
+00000034  8A06              mov al,[esi]
+00000036  46                inc esi
+00000037  3C00              cmp al,0x0
+00000039  7403              jz 0x3e
+0000003B  EE                out dx,al
+0000003C  EBF6              jmp short 0x34
+0000003E  C3                ret
+0000003F  68656C6C6F        push dword 0x6f6c6c65
+00000044  0D0A00776F        or eax,0x6f77000a
+00000049  726C              jc 0xb7
+0000004B  64                fs
+0000004C  0D                db 0x0d
+0000004D  0A00              or al,[eax]
 ```
 
 ### Result of this sample.
 ```
-$ ./emux86 tests/test.bin
-EIP = 7C00, Code = E8
-EIP = 7C1F, Code = 55
-EIP = 7C20, Code = 89
-EIP = 7C22, Code = B8
-EIP = 7C27, Code = 5D
-EIP = 7C28, Code = C3
-EAX = 00000003
+$ ./emux86 -q tests/select.bin
+>h
+hello
+>w
+world
+>q
+
+
+end of program.
+
+EAX = 00000071
 ECX = 00000000
-EDX = 00000000
+EDX = 000003f8
 EBX = 00000000
 ESP = 00007c00
-EBP = f3558260
-ESI = 00000000
+EBP = 00000000
+ESI = 00007c4f
 EDI = 00000000
-EIP = f3558260
+EIP = 00000000
 ```
