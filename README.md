@@ -1,11 +1,11 @@
 # emu-x86
 A emulator for 80386 cpu that is x86 architecture as 32bit.
 
-# Requirements
+## Requirements
 
 This emulator assumes 32bit, so it requires a binary for 32bit. This project includes a gcc for i386 under tools directory. To make a 32bit binary of test code, please use it.
 
-# Usage
+## Usage
 
 First, make a 32bit binary (ex, from assembly or c file).  
 
@@ -28,7 +28,8 @@ Finally, run a emulator to read a 32bit binary.
 ```
 $ ./emux86 test.bin
 ```
-# Sample
+
+## Sample
 
 ### input source code as c lang.
 ```c
